@@ -19,7 +19,7 @@ def login():
     password = request.form.get("password")
     # 校验参数
     if not all([username, password]):
-        return render_template("login.html", errmsg="参数不足")
+        return render_template("login.html", errmsg="参数缺失或不足，请检查")
 
     # 校验对应的管理员用户数据
     if username == "admin" and password == "admin":
@@ -27,7 +27,7 @@ def login():
         session["username"] = username
         return redirect(url_for("home.index"))
 
-    return render_template("login.html", errmsg="用户名或密码错误")
+    return render_template("login.html", errmsg="用户名或密码错误，请检查")
 
 
 # 退出登录
