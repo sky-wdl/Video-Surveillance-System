@@ -1,6 +1,8 @@
 import cv2
 import threading
 import face_recognition
+import smtplib
+from email.mime.text import MIMEText
 
 
 class RecordingThread(threading.Thread):
@@ -29,16 +31,23 @@ class RecordingThread(threading.Thread):
 
 
 class VideoCamera(object):
+
+
+
+
     def __init__(self):
         # 打开摄像头， 0代表笔记本内置摄像头
         self.face_encoding = None
         self.cap = cv2.VideoCapture(0)
         # 初始化人脸
-        obama_img = face_recognition.load_image_file("obama.jpg")
-        self.obama_face_encoding = face_recognition.face_encodings(obama_img)[0]
+        wen_dongle_img = face_recognition.load_image_file("obama.jpg")
+        self.obama_face_encoding = face_recognition.face_encodings(wen_dongle_img)[0]
 
+        # 查找人脸位置，返回人脸的位置
         self.face_locations = []
+        # 对人脸信息进行编码，返回128维特征向量list
         self.face_encodings = []
+        # 人脸名字初始化
         self.face_names = []
         self.process_this_frame = True
 
@@ -56,10 +65,29 @@ class VideoCamera(object):
     def get_frame(self):
         ret, frame = self.cap.read()
 
+        # mail_host = 'smtp.88.com'
+        # mail_user = '家庭时评监控系统'
+        # mail_pass = 'nAE7HFsURjGfX8GH'
+        # sender = 'tbpj10@88.com'
+        # receivers = ['gtxywdl@sina.com']
+        # message = MIMEText('content', 'plain', 'utf-8')
+        # message['Subject'] = '【警报】发现陌生人'
+        # message['From'] = sender
+        # message['To'] = receivers[0]
+        # smtpObj = smtplib.SMTP()
+        #  # 连接到服务器
+        # smtpObj.connect(mail_host, 25)
+        #  # 登录到服务器
+        # smtpObj.sendmail(sender, receivers, message.as_string())
+        # # 退出
+        # smtpObj.quit()
+        # print('success')
+
         if ret:
             # 将视频帧调整为1/4大小，以加快脸部识别处理
             small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
             # 将图像从BGR颜色（OpenCV使用的）转换为RGB颜色（face_recognition使用）
+            rgb_small_frame = small_frame[:, :, ::-1]
             if self.process_this_frame:
                 # 查找当前视频帧中的所有面部和脸部编码
                 self.face_locations = face_recognition.face_locations(small_frame)
@@ -73,9 +101,10 @@ class VideoCamera(object):
                         name = "WenDongliu"
                     else:
                         name = "unknown"
+                        # smtpObj.sendmail(sender, receivers, message.as_string())
                     self.face_names.append(name)
             self.process_this_frame = not self.process_this_frame
-            # 对有人脸的图进行处理
+            # 对有人脸的图进行标记处理
             for (top, right, bottom, left), name in zip(self.face_locations, self.face_names):
                 # 自从我们检测到的框架缩放到1/4尺寸后，缩放后面的位置
                 top *= 4
